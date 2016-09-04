@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><diagram program="umlet" version="13.3">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>10</x>
+      <y>30</y>
+      <w>210</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Indexer
+--
+-FowardIndex foward;
+-InvertedIndex inverted;
+--
++index(string file_path)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>340</x>
+      <y>40</y>
+      <w>450</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>FowardIndex
+--
+-unorderedmap&lt;string document, vector&lt;string&gt; words&gt;
+--
++index(string file_path)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>160</x>
+      <y>40</y>
+      <w>200</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>180.0;10.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>340</x>
+      <y>160</y>
+      <w>350</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>InvertedIndex
+--
+-unorderedmap&lt;char c, map&lt;word, doclist&gt;&gt; buckets
+--
++index(FowardIndex index)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>180</x>
+      <y>70</y>
+      <w>180</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>160.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+</diagram>

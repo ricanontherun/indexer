@@ -7,5 +7,11 @@ int main() {
 
   Indexer::ForwardIndex::index(file, "jawn");
 
+  auto index = Indexer::ForwardIndex::data();
+
+  for ( auto const & word : index["jawn"] ) {
+    std::cout << word << "\n";
+  }
+
   return 0;
 }

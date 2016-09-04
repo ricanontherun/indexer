@@ -11,17 +11,17 @@ namespace Indexer {
 typedef std::unordered_map<
     std::string,
     std::unordered_set<std::string>
-> forward_index_t;
+> FowardIndex_T;
 
 class ForwardIndex {
 private:
-  static forward_index_t document_words;
+  static FowardIndex_T document_words;
 
   static void Tokenize(std::string context, std::vector<std::string> &tokens);
 
 public:
   static void index(std::ifstream &input, std::string key);
-  static const forward_index_t &data();
+  static const FowardIndex_T &data();
 };
 
 } // End Indexer

@@ -5,10 +5,7 @@
 
 namespace Indexer {
 
-std::unordered_map<
-    std::string,
-    std::unordered_set<std::string>
-> ForwardIndex::document_words;
+FowardIndex_T ForwardIndex::document_words;
 
 void ForwardIndex::index(std::ifstream &file, std::string key) {
   std::string line;
@@ -28,7 +25,7 @@ void ForwardIndex::index(std::ifstream &file, std::string key) {
   }
 }
 
-const forward_index_t &ForwardIndex::data() {
+const FowardIndex_T &ForwardIndex::data() {
   return ForwardIndex::document_words;
 }
 

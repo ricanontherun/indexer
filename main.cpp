@@ -1,13 +1,13 @@
 #include <iostream>
-#include <ForwardIndex.h>
+#include <Forward.h>
 
 int main() {
 
   std::ifstream file("/home/ricanontherun/Code/indexer/document1");
 
-  Indexer::ForwardIndex::index(file, "jawn");
+  Indexer::Forward::index(file, "jawn");
 
-  auto index = Indexer::ForwardIndex::data();
+  auto index = Indexer::Forward::data();
 
   for ( auto const & word : index["jawn"] ) {
     std::cout << word << "\n";

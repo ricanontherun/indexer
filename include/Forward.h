@@ -13,7 +13,7 @@ typedef std::unordered_map<
     std::unordered_set<std::string>
 > FowardIndex_T;
 
-class ForwardIndex {
+class Forward {
 private:
   static FowardIndex_T document_words;
 

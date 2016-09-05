@@ -24,6 +24,7 @@ TEST_CASE("Forward Index tests", "[ForwardIndex], [unit]") {
 
   SECTION("The output consists of unique words") {
     std::set<std::string> expected{
+
         "these", "some", "are", "unique", "words"
     };
 

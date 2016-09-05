@@ -6,8 +6,8 @@
 #include <iterator>
 #include "Forward.h"
 
-TEST_CASE("ForwardIndex will index a document into it's unique words", "[ForwardIndex], [unit]") {
-  SECTION("yep") {
+TEST_CASE("Forward Index tests", "[ForwardIndex], [unit]") {
+  SECTION("The output from the indexer is predictable.") {
     std::set<std::string> expected{
         "mary", "had", "a", "little", "lamb", "his", "fur", "was", "white", "as", "snow"
     };
@@ -19,15 +19,22 @@ TEST_CASE("ForwardIndex will index a document into it's unique words", "[Forward
     std::unordered_set<std::string> data = actual["document1"];
     std::set<std::string> ordered_data(data.begin(), data.end());
 
-    std::vector<std::string> difference;
+    REQUIRE(expected == ordered_data);
+  }
 
-    std::set_difference(ordered_data.begin(),
-                        ordered_data.end(),
-                        expected.begin(),
-                        expected.end(),
-                        std::inserter(difference, difference.begin()));
+  SECTION("The output consists of unique words") {
+    std::set<std::string> expected{
+        "these", "some", "are", "unique", "words"
+    };
 
-    REQUIRE(difference.size() == 0);
+    std::ifstream file("../data/duplicate_data");
+    Indexer::Forward::index(file, "duplicate_data");
+
+    Indexer::FowardIndex_T actual = Indexer::Forward::data();
+    std::unordered_set<std::string> data = actual["duplicate_data"];
+    std::set<std::string> ordered_data(data.begin(), data.end());
+
+    REQUIRE(expected == ordered_data);
   }
 }
 

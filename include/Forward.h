@@ -15,7 +15,7 @@ typedef std::unordered_map<
 
 class Forward {
 private:
-  static FowardIndex_T document_words;
+  static FowardIndex_T __index;
 
   static void Tokenize(std::string context, std::vector<std::string> &tokens);
 

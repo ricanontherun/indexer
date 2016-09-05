@@ -5,7 +5,7 @@
 
 namespace Indexer {
 
-FowardIndex_T Forward::document_words;
+FowardIndex_T Forward::__index;
 
 void Forward::index(std::ifstream &file, std::string key) {
   std::string line;
@@ -19,14 +19,14 @@ void Forward::index(std::ifstream &file, std::string key) {
     Forward::Tokenize(line, tokens);
 
     // We let the unordered_set weed out any duplicate words.
-    Forward::document_words[key].insert(tokens.begin(), tokens.end());
+    Forward::__index[key].insert(tokens.begin(), tokens.end());
 
     tokens.clear();
   }
 }
 
 const FowardIndex_T &Forward::data() {
-  return Forward::document_words;
+  return Forward::__index;
 }
 
 void Forward::Tokenize(std::string context, std::vector<std::string> &tokens) {

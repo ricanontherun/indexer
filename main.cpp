@@ -1,17 +1,10 @@
-#include <iostream>
-#include <Forward.h>
+
 
 int main() {
 
-  std::ifstream file("/home/ricanontherun/Code/indexer/document1");
-
-  Indexer::Forward::index(file, "jawn");
-
-  auto index = Indexer::Forward::data();
-
-  for ( auto const & word : index["jawn"] ) {
-    std::cout << word << "\n";
-  }
-
+  // Create a series of worker threads
+  // which iterate over a directory of files.
+  // Each thread is responsible for calling index on a ifstream
+  // which will add a document key/value to the static index.
   return 0;
 }

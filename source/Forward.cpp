@@ -6,6 +6,7 @@
 namespace Indexer {
 
 FowardIndex_T Forward::__index;
+std::mutex Forward::index_lock;
 
 void Forward::index(std::ifstream &file, std::string key) {
   std::string line;
@@ -18,8 +19,9 @@ void Forward::index(std::ifstream &file, std::string key) {
     // Tokenize.
     Forward::Tokenize(line, tokens);
 
-    // We let the unordered_set weed out any duplicate words.
+    Forward::index_lock.lock();
     Forward::__index[key].insert(tokens.begin(), tokens.end());
+    Forward::index_lock.unlock();
 
     tokens.clear();
   }

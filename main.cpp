@@ -3,6 +3,10 @@
 #include <dirent.h>
 #include <iostream>
 #include <mutex>
+#include <unistd.h>
+#include <fstream>
+
+#include <Forward.h>
 
 std::mutex file_queue_lock;
 std::queue<std::string> file_queue;
@@ -25,15 +29,28 @@ public:
 
       file_queue_lock.unlock();
 
-      std::cout << "Processing file: ./data/" << file_name << "\n";
+      std::string file_path("/home/ricanontherun/Code/indexer/data/" + file_name);
+      std::ifstream file(file_path);
+
+      if (file.good()) {
+        std::cout << "Processing file: " << file_path << "\n";
+        Indexer::Forward::index(file, file_name);
+      } else {
+        std::cerr << "Failed to open file: " << file_path << "\n";
+      }
     }
   }
 
 };
 
 void fill_queue(std::queue<std::string> &file_queue) {
-  DIR *dir = opendir("/home/ricanontherun/Code/indexer/data");
+  DIR *dir = opendir("../data");
   struct dirent *file;
+
+  if (dir == NULL) {
+    std::cerr << "Failed to open directory data\n";
+    return;
+  }
 
   while ((file = readdir(dir)) != NULL) {
     if (file->d_type != DT_REG) { // Ignore non-regular files.
@@ -44,13 +61,16 @@ void fill_queue(std::queue<std::string> &file_queue) {
   }
 }
 
-int main() {
+int main(int argc, char **argv) {
   // File queue.
   fill_queue(file_queue);
 
   // Take-away: Spawning more worker threads than there are files
   // apparently causes issues. Research!
   unsigned int max_threads = std::thread::hardware_concurrency();
+
+  // We definitely don't want to spawn more worker threads
+  // than there are files.
   unsigned int threads = std::min(max_threads, static_cast<unsigned int>(file_queue.size()));
 
   std::vector<std::thread> workers(threads);
@@ -67,8 +87,6 @@ int main() {
       worker.join();
     }
   }
-  // which iterate over a directory of files.
-  // Each thread is responsible for calling index on a ifstream
-  // which will add a document key/value to the static index.
+
   return 0;
 }

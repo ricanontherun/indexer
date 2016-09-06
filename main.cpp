@@ -29,7 +29,7 @@ public:
 
       file_queue_lock.unlock();
 
-      std::string file_path("/home/ricanontherun/Code/indexer/data/" + file_name);
+      std::string file_path("..data/" + file_name);
       std::ifstream file(file_path);
 
       if (file.good()) {

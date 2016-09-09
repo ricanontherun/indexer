@@ -16,25 +16,24 @@ public:
   Worker() {}
 
   void operator()() {
-    std::string file_name;
+    std::string chunk_path;
 
     // TODO: How can we use lock_guards in this context?
     file_queue_lock.lock();
 
     // START CRITICAL SECTION
     while (!file_queue.empty()) {
-      file_name = file_queue.front();
+      chunk_path = file_queue.front();
       file_queue.pop();
       // END CRITICAL SECTION
 
       file_queue_lock.unlock();
 
-      std::string file_path("..data/" + file_name);
+      std::string file_path(chunk_path);
       std::ifstream file(file_path);
 
       if (file.good()) {
-        std::cout << "Processing file: " << file_path << "\n";
-        Indexer::Forward::index(file, file_name);
+        Indexer::Forward::index(file, chunk_path);
       } else {
         std::cerr << "Failed to open file: " << file_path << "\n";
       }
@@ -44,7 +43,8 @@ public:
 };
 
 void fill_queue(std::queue<std::string> &file_queue) {
-  DIR *dir = opendir("../data");
+  std::string path("/tmp/file.chunks");
+  DIR *dir = opendir(path.c_str());
   struct dirent *file;
 
   if (dir == NULL) {
@@ -57,7 +57,7 @@ void fill_queue(std::queue<std::string> &file_queue) {
       continue;
     }
 
-    file_queue.push(std::string(file->d_name)); // Throw it on the queue.
+    file_queue.push(path + "/" + std::string(file->d_name)); // Throw it on the queue.
   }
 }
 

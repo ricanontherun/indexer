@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <sys/stat.h>
+#include <algorithm>
 
 #include <Forward.h>
 
@@ -115,18 +116,29 @@ bool partition_file(const std::string &file_path, std::string &out_tmp) {
   }
 
   out_tmp = std::string(buf);
+  out_tmp.erase(std::remove(out_tmp.begin(), out_tmp.end(), '\n'), out_tmp.end());
 
   return true;
 }
 
 void index_file(const std::string &file_path) {
-  std::string chunks;
+  std::string chunks_dir;
 
-  if (!partition_file(file_path, chunks)) {
+  if (!partition_file(file_path, chunks_dir)) {
     std::cerr << "Failed to partition file.\n";
     std::exit(EXIT_FAILURE);
   }
 
+  std::queue<std::string> chunk_queue;
+  populate_file_queue(chunks_dir, chunk_queue);
+
+  std::string chunk_path;
+  while (!chunk_queue.empty()) {
+    chunk_path = chunk_queue.front();
+    chunk_queue.pop();
+
+    std::cout << "Processing chunk " << chunk_path << "\n";
+  }
   // Use worker threads to process each chunk and store
   // the data at key file_path.
 }

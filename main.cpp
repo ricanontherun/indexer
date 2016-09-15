@@ -11,6 +11,8 @@
 #include <Forward.h>
 
 std::mutex file_queue_lock;
+unsigned int max_threads = std::thread::hardware_concurrency();
+
 
 class Worker {
 public:
@@ -18,27 +20,6 @@ public:
 
   void operator()() {
     /*
-  std::string chunk_path;
-
-  // TODO: How can we use lock_guards in this context?
-  file_queue_lock.lock();
-
-  // START CRITICAL SECTION
-  while (!file_queue.empty()) {
-    chunk_path = file_queue.front();
-    file_queue.pop();
-    // END CRITICAL SECTION
-
-    file_queue_lock.unlock();
-
-    std::string file_path(chunk_path);
-    std::ifstream file(file_path);
-
-    if (file.good()) {
-      Indexer::Forward::index(file, chunk_path);
-    } else {
-      std::cerr << "Failed to open file: " << file_path << "\n";
-    }
   }
   */
   }
@@ -76,30 +57,6 @@ void populate_file_queue(
 }
 
 void index() {
-  /*
-  // Take-away: Spawning more worker threads than there are files
-  // apparently causes issues. Research!
-  unsigned int max_threads = std::thread::hardware_concurrency();
-
-  // We definitely don't want to spawn more worker threads
-  // than there are files.
-  unsigned int threads = std::min(max_threads, static_cast<unsigned int>(file_queue.size()));
-
-  std::vector<std::thread> workers(threads);
-
-  // Create a series of worker threads
-  for (int i = 0; i < threads; i++) {
-    workers.push_back(std::thread(Worker()));
-  }
-
-  for (auto &worker : workers) {
-    // TODO: Research. What kinds of situations can cause a
-    // thread to no longer be joinable?
-    if (worker.joinable()) {
-      worker.join();
-    }
-  }
-  */
 }
 
 /**
@@ -153,15 +110,43 @@ void index_file(const std::string &file_path) {
   std::queue<std::string> chunk_queue;
   populate_file_queue(chunks_dir, chunk_queue);
 
-  std::string chunk_path;
-  while (!chunk_queue.empty()) {
-    chunk_path = chunk_queue.front();
-    chunk_queue.pop();
+  // We definitely don't want to spawn more worker threads
+  // than there are files.
+  unsigned int threads = std::min(max_threads, static_cast<unsigned int>(chunk_queue.size()));
 
-    std::cout << "Processing chunk " << chunk_path << "\n";
+  std::vector<std::thread> workers(threads);
+
+  // Create a series of worker threads
+  for (int i = 0; i < threads; i++) {
+    workers.push_back(std::thread([&chunk_queue](){
+      std::string chunk_path;
+
+      // TODO: How can we use lock_guards in this context?
+      file_queue_lock.lock();
+
+      while (!chunk_queue.empty()) {
+        chunk_path = chunk_queue.front();
+        chunk_queue.pop();
+
+        file_queue_lock.unlock();
+
+        std::string file_path(chunk_path);
+        std::ifstream file(file_path);
+
+        if (file.good()) {
+          Indexer::Forward::index(file, chunk_path);
+        } else {
+          std::cerr << "Failed to open file: " << file_path << "\n";
+        }
+      }
+    }));
   }
-  // Use worker threads to process each chunk and store
-  // the data at key file_path.
+
+  for (auto &worker : workers) {
+    if (worker.joinable()) {
+      worker.join();
+    }
+  }
 }
 
 /**

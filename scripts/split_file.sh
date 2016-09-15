@@ -16,7 +16,7 @@ fi
 TMP_DIR=`mktemp -d`
 
 # Split the target file into the new directory
-split -b 64k $1 $TMP_DIR/
+split -b 128k $1 $TMP_DIR/
 
 # Echo for possible capture by host application or user.
 echo $TMP_DIR

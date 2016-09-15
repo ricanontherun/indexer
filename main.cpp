@@ -87,17 +87,14 @@ bool split_file(const std::string &file_path, std::string &out_tmp) {
  * @param file_path
  */
 void index_file(const std::string &file_path) {
-    std::cout << "Processing file with " << max_threads << " threads.\n";
-  std::ifstream file(file_path);
-  Indexer::Forward::index(file, file_path);
-
-  return;
   std::string chunks_dir;
 
   if (!split_file(file_path, chunks_dir)) {
     std::cerr << "Failed to split file.\n";
     std::exit(EXIT_FAILURE);
   }
+
+  std::cout << "Indexing " << file_path << " using up to " << max_threads << " threads...\n";
 
   std::queue<std::string> chunk_queue;
   populate_file_queue(chunks_dir, chunk_queue);
@@ -113,7 +110,6 @@ void index_file(const std::string &file_path) {
     workers.push_back(std::thread([&chunk_queue](){
       std::string chunk_path;
 
-      // TODO: How can we use lock_guards in this context?
       file_queue_lock.lock();
 
       while (!chunk_queue.empty()) {
@@ -122,13 +118,12 @@ void index_file(const std::string &file_path) {
 
         file_queue_lock.unlock();
 
-        std::string file_path(chunk_path);
-        std::ifstream file(file_path);
+        std::ifstream file(chunk_path);
 
         if (file.good()) {
           Indexer::Forward::index(file, chunk_path);
         } else {
-          std::cerr << "Failed to open file: " << file_path << "\n";
+          std::cerr << "Failed to open file: " << chunk_path << "\n";
         }
       }
     }));

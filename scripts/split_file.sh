@@ -3,7 +3,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage: sh partition_file path/to/file"
+    echo "Usage: sh split_file path/to/file"
     exit 1
 fi
 

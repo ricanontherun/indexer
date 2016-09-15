@@ -5,7 +5,6 @@
 #include <mutex>
 #include <unistd.h>
 #include <fstream>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <Forward.h>
@@ -17,30 +16,30 @@ public:
   Worker() {}
 
   void operator()() {
-      /*
-    std::string chunk_path;
+    /*
+  std::string chunk_path;
 
-    // TODO: How can we use lock_guards in this context?
-    file_queue_lock.lock();
+  // TODO: How can we use lock_guards in this context?
+  file_queue_lock.lock();
 
-    // START CRITICAL SECTION
-    while (!file_queue.empty()) {
-      chunk_path = file_queue.front();
-      file_queue.pop();
-      // END CRITICAL SECTION
+  // START CRITICAL SECTION
+  while (!file_queue.empty()) {
+    chunk_path = file_queue.front();
+    file_queue.pop();
+    // END CRITICAL SECTION
 
-      file_queue_lock.unlock();
+    file_queue_lock.unlock();
 
-      std::string file_path(chunk_path);
-      std::ifstream file(file_path);
+    std::string file_path(chunk_path);
+    std::ifstream file(file_path);
 
-      if (file.good()) {
-        Indexer::Forward::index(file, chunk_path);
-      } else {
-        std::cerr << "Failed to open file: " << file_path << "\n";
-      }
+    if (file.good()) {
+      Indexer::Forward::index(file, chunk_path);
+    } else {
+      std::cerr << "Failed to open file: " << file_path << "\n";
     }
-    */
+  }
+  */
   }
 
 };
@@ -64,10 +63,11 @@ void populate_file_queue(
 
     file_queue.push(directory_path + "/" + std::string(file->d_name)); // Throw it on the queue.
   }
+
+  closedir(dir);
 }
 
-void index()
-{
+void index() {
   /*
   // Take-away: Spawning more worker threads than there are files
   // apparently causes issues. Research!
@@ -94,37 +94,59 @@ void index()
   */
 }
 
-void partition_file(const std::string & file_path)
-{
-    // Rather than doing a shit ton of system, call a script.
+bool partition_file(const std::string &file_path, std::string &out_tmp) {
+  // Construct and execute the partition command
+  std::string command = "sh ../scripts/partition_file.sh " + file_path;
+  FILE *fp = popen(command.c_str(), "r");
+
+  if (!fp) {
+    return false;
+  }
+
+  // Read the script's output.
+  char buf[BUFSIZ];
+  fgets(buf, BUFSIZ, fp);
+
+  // Capture the return code for error handling.
+  int ret = pclose(fp);
+
+  if (ret == -1) {
+    return false;
+  }
+
+  out_tmp = std::string(buf);
+
+  return true;
 }
 
-void index_file(const std::string & file_path)
-{
-    partition_file(file_path);
-    // escape directory separators or something?
-    // split the file into chunks at /tmp/file_path.chunks
-    std::cout << "Indexing file '" << file_path << "' \n";
+void index_file(const std::string &file_path) {
+  std::string chunks;
+
+  if (!partition_file(file_path, chunks)) {
+    std::cerr << "Failed to partition file.\n";
+    std::exit(EXIT_FAILURE);
+  }
+
+  // Use worker threads to process each chunk and store
+  // the data at key file_path.
 }
 
-void index_directory(const char *directory)
-{
-    std::queue<std::string> file_queue;
-    populate_file_queue(directory, file_queue);
+void index_directory(const char *directory) {
+  std::queue<std::string> file_queue;
+  populate_file_queue(directory, file_queue);
 
-    std::string file;
+  std::string file;
 
-    while ( !file_queue.empty() ) {
-        file = file_queue.front();
+  while (!file_queue.empty()) {
+    file = file_queue.front();
+    file_queue.pop();
 
-        index_file(file);
-
-        file_queue.pop();
-    }
+    index_file(file);
+  }
 }
 
 int main(int argc, char **argv) {
-  if ( argc == 1 ) {
+  if (argc == 1) {
     // Display help.
   }
 
@@ -132,7 +154,7 @@ int main(int argc, char **argv) {
   struct stat file_stat;
   int stat_ret = stat(file_or_directory, &file_stat);
 
-  if ( stat_ret == -1 ) {
+  if (stat_ret == -1) {
     std::cerr << "Failed to open file '" << file_or_directory << "'\n";
     return EXIT_FAILURE;
   }
@@ -145,6 +167,7 @@ int main(int argc, char **argv) {
     index_file(std::string(file_or_directory));
   } else {
     std::cerr << "Unsupported file type \n";
+    return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;

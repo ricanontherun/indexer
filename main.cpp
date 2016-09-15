@@ -45,6 +45,13 @@ public:
 
 };
 
+/**
+ * Populate a queue with relative paths to the REGULAR
+ * files in a directory.
+ *
+ * @param directory_path
+ * @param file_queue
+ */
 void populate_file_queue(
     const std::string &directory_path,
     std::queue<std::string> &file_queue
@@ -95,6 +102,15 @@ void index() {
   */
 }
 
+/**
+ * Split a file into small chunks,
+ * the tmp directory which contains them is returned via out_tmp
+ *
+ * @param file_path
+ * @param out_tmp
+ *
+ * @return
+ */
 bool split_file(const std::string &file_path, std::string &out_tmp) {
   // Construct and execute the split script
   std::string command = "sh ../scripts/split_file.sh " + file_path;
@@ -121,6 +137,11 @@ bool split_file(const std::string &file_path, std::string &out_tmp) {
   return true;
 }
 
+/**
+ * Index a particular file.
+ *
+ * @param file_path
+ */
 void index_file(const std::string &file_path) {
   std::string chunks_dir;
 
@@ -143,7 +164,12 @@ void index_file(const std::string &file_path) {
   // the data at key file_path.
 }
 
-void index_directory(const char *directory) {
+/**
+ * Index all the files in a given directory.
+ *
+ * @param directory
+ */
+void index_directory(const std::string & directory) {
   std::queue<std::string> file_queue;
   populate_file_queue(directory, file_queue);
 
@@ -174,7 +200,7 @@ int main(int argc, char **argv) {
   mode_t file_mode = file_stat.st_mode;
 
   if (S_ISDIR(file_mode)) {
-    index_directory(file_or_directory);
+    index_directory(std::string(file_or_directory));
   } else if (S_ISREG(file_mode)) {
     index_file(std::string(file_or_directory));
   } else {

@@ -95,9 +95,9 @@ void index() {
   */
 }
 
-bool partition_file(const std::string &file_path, std::string &out_tmp) {
-  // Construct and execute the partition command
-  std::string command = "sh ../scripts/partition_file.sh " + file_path;
+bool split_file(const std::string &file_path, std::string &out_tmp) {
+  // Construct and execute the split script
+  std::string command = "sh ../scripts/split_file.sh " + file_path;
   FILE *fp = popen(command.c_str(), "r");
 
   if (!fp) {
@@ -124,8 +124,8 @@ bool partition_file(const std::string &file_path, std::string &out_tmp) {
 void index_file(const std::string &file_path) {
   std::string chunks_dir;
 
-  if (!partition_file(file_path, chunks_dir)) {
-    std::cerr << "Failed to partition file.\n";
+  if (!split_file(file_path, chunks_dir)) {
+    std::cerr << "Failed to split file.\n";
     std::exit(EXIT_FAILURE);
   }
 

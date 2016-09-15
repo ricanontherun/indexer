@@ -21,3 +21,4 @@ split -b 64k $1 $TMP_DIR/
 echo $TMP_DIR
 
 exit 0
+

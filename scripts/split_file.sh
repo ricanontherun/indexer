@@ -1,4 +1,5 @@
-# Partition a file into 64kb chunks in a random tmp directory, which is output.
+# Slit a file into 64kb chunks in a random tmp directory
+# and return the tmp directory name for use by user or host application.
 #!/bin/bash
 
 if [ $# -eq 0 ]; then

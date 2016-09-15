@@ -13,19 +13,6 @@
 std::mutex file_queue_lock;
 unsigned int max_threads = std::thread::hardware_concurrency();
 
-
-class Worker {
-public:
-  Worker() {}
-
-  void operator()() {
-    /*
-  }
-  */
-  }
-
-};
-
 /**
  * Populate a queue with relative paths to the REGULAR
  * files in a directory.
@@ -100,6 +87,11 @@ bool split_file(const std::string &file_path, std::string &out_tmp) {
  * @param file_path
  */
 void index_file(const std::string &file_path) {
+    std::cout << "Processing file with " << max_threads << " threads.\n";
+  std::ifstream file(file_path);
+  Indexer::Forward::index(file, file_path);
+
+  return;
   std::string chunks_dir;
 
   if (!split_file(file_path, chunks_dir)) {

@@ -1,5 +1,5 @@
 # Indexer
-Trying my hand at an document indexing system. Index the unique words in a set of documents to a output file.
+Trying my hand at an document indexing system. The resulting inverted index will contain unique tokens mapped to structures containing information such as their documents of origin and line numbers. This might change.
 
 ## (Eventual) Usage
 ```sh

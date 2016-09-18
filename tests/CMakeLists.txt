@@ -8,8 +8,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 set(SOURCE_FILES
         ../source/Forward.cpp
+        ../source/Inverted.cpp
+        ../source/DocumentRepository.cpp
         ForwardIndexTests.cpp
         InvertedIndexTest.cpp
+        DocumentRepositoryTest.cpp
         )
 
 add_executable(tests ${SOURCE_FILES})

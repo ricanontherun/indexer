@@ -5,10 +5,10 @@
 
 namespace Indexer {
 
-FowardIndex_T Forward::__index;
+ForwardIndex_T Forward::__index;
 std::mutex Forward::index_lock;
 
-void Forward::index(std::ifstream &file, std::string key) {
+void Forward::index(std::ifstream &file, docID id) {
   std::string line;
   std::vector<std::string> tokens;
 
@@ -20,7 +20,7 @@ void Forward::index(std::ifstream &file, std::string key) {
     Forward::Tokenize(line, tokens);
 
     Forward::index_lock.lock();
-    Forward::__index[key].insert(tokens.begin(), tokens.end());
+    Forward::__index[id].insert(tokens.begin(), tokens.end());
     Forward::index_lock.unlock();
 
     tokens.clear();
@@ -32,7 +32,7 @@ void Forward::clear()
     Forward::__index.clear();
 }
 
-const FowardIndex_T &Forward::data() {
+const ForwardIndex_T &Forward::data() {
   return Forward::__index;
 }
 

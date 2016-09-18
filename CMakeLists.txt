@@ -6,5 +6,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread")
 
 include_directories(include)
 
-set(SOURCE_FILES main.cpp source/Forward.cpp)
+set(SOURCE_FILES
+    main.cpp
+    source/Forward.cpp
+    source/DocumentRepository.cpp
+    source/Inverted.cpp
+)
+
 add_executable(indexer ${SOURCE_FILES})

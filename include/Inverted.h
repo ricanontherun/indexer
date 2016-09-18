@@ -2,21 +2,25 @@
 #define INDEXER_INVERTED_H
 
 #include <unordered_map>
+#include <set>
 
 #include <Forward.h>
+#include <DocumentRepository.h> // Might wanna pull the typedefs into a types.h ...
 
 namespace Indexer
 {
 
+typedef std::unordered_map<
+    std::string, // Token
+    std::set<docID> // List of occurence documents
+> InvertedIndex_T;
+
 class Inverted
 {
     public:
-        static void index(const Forward & forward_index);
+        static void index(const ForwardIndex_T & index);
     private:
-        std::unordered_map<
-            std::string, // Token
-            std::vector<std::string> // List of occurence documents
-        > __index;
+        static InvertedIndex_T __index;
 
 };
 

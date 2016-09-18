@@ -8,9 +8,12 @@
 #include <sys/stat.h>
 #include <algorithm>
 
+#include <DocumentRepository.h>
 #include <Forward.h>
+#include <Inverted.h>
 
 std::mutex file_queue_lock;
+
 unsigned int max_threads = std::thread::hardware_concurrency();
 
 /**
@@ -41,9 +44,6 @@ void populate_file_queue(
   }
 
   closedir(dir);
-}
-
-void index() {
 }
 
 /**
@@ -94,6 +94,9 @@ void index_file(const std::string &file_path) {
     std::exit(EXIT_FAILURE);
   }
 
+  // Store the document repository
+  Indexer::docID doc_id = Indexer::DocumentRepository::getDocID(file_path);
+
   std::cout << "Indexing " << file_path << " using up to " << max_threads << " threads...\n";
 
   std::queue<std::string> chunk_queue;
@@ -107,7 +110,7 @@ void index_file(const std::string &file_path) {
 
   // Create a series of worker threads
   for (int i = 0; i < threads; i++) {
-    workers.push_back(std::thread([&chunk_queue](){
+    workers.push_back(std::thread([&chunk_queue, doc_id](){
       std::string chunk_path;
 
       file_queue_lock.lock();
@@ -121,7 +124,8 @@ void index_file(const std::string &file_path) {
         std::ifstream file(chunk_path);
 
         if (file.good()) {
-          Indexer::Forward::index(file, chunk_path);
+          Indexer::Forward::index(file, doc_id);
+          file.close();
         } else {
           std::cerr << "Failed to open file: " << chunk_path << "\n";
         }
@@ -158,6 +162,7 @@ void index_directory(const std::string & directory) {
 int main(int argc, char **argv) {
   if (argc == 1) {
     // Display help.
+    return EXIT_FAILURE;
   }
 
   const char *file_or_directory = argv[1];
@@ -179,6 +184,9 @@ int main(int argc, char **argv) {
     std::cerr << "Unsupported file type \n";
     return EXIT_FAILURE;
   }
+
+  // Convert to inverted index
+  Indexer::Inverted::index(Indexer::Forward::data());
 
   return EXIT_SUCCESS;
 }

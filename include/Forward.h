@@ -23,6 +23,7 @@ private:
 public:
   static void index(std::ifstream &input, std::string key);
   static const FowardIndex_T &data();
+  static void clear();
 };
 
 } // End Indexer

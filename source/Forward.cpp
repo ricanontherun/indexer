@@ -27,6 +27,11 @@ void Forward::index(std::ifstream &file, std::string key) {
   }
 }
 
+void Forward::clear()
+{
+    Forward::__index.clear();
+}
+
 const FowardIndex_T &Forward::data() {
   return Forward::__index;
 }

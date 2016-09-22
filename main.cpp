@@ -11,6 +11,7 @@
 #include <DocumentRepository.h>
 #include <Forward.h>
 #include <Inverted.h>
+#include <types.h>
 
 std::mutex file_queue_lock;
 
@@ -46,6 +47,19 @@ void populate_file_queue(
   closedir(dir);
 }
 
+int determine_chunk_size(const std::string &file_path, std::string & chunk_size) {
+  struct stat fs;
+
+  int stat_ret = stat(file_path.c_str(), &fs);
+
+  if ( stat_ret == -1 ) {
+    std::cerr << "Failed to stat file '" << file_path << "'\n";
+    return -1;
+  }
+
+  off_t size = fs.st_size;
+}
+
 /**
  * Split a file into small chunks,
  * the tmp directory which contains them is returned via out_tmp
@@ -56,6 +70,8 @@ void populate_file_queue(
  * @return
  */
 bool split_file(const std::string &file_path, std::string &out_tmp) {
+  int chunk_size = determine_chunk_size(file_path);
+
   // Construct and execute the split script
   std::string command = "sh ../scripts/split_file.sh " + file_path;
   FILE *fp = popen(command.c_str(), "r");
@@ -81,43 +97,23 @@ bool split_file(const std::string &file_path, std::string &out_tmp) {
   return true;
 }
 
-/**
- * Index a particular file.
- *
- * @param file_path
- */
-void index_file(const std::string &file_path) {
-  std::string chunks_dir;
-
-  if (!split_file(file_path, chunks_dir)) {
-    std::cerr << "Failed to split file.\n";
-    std::exit(EXIT_FAILURE);
-  }
-
-  // Store the document repository
-  Indexer::docID doc_id = Indexer::DocumentRepository::getDocID(file_path);
-
-  std::cout << "Indexing " << file_path << " using up to " << max_threads << " threads...\n";
-
-  std::queue<std::string> chunk_queue;
-  populate_file_queue(chunks_dir, chunk_queue);
-
+void dispatch_file_workers(std::queue<std::string> &file_queue, Indexer::docID doc_id) {
   // We definitely don't want to spawn more worker threads
   // than there are files.
-  unsigned int threads = std::min(max_threads, static_cast<unsigned int>(chunk_queue.size()));
+  unsigned int threads = std::min(max_threads, static_cast<unsigned int>(file_queue.size()));
 
   std::vector<std::thread> workers(threads);
 
   // Create a series of worker threads
   for (int i = 0; i < threads; i++) {
-    workers.push_back(std::thread([&chunk_queue, doc_id](){
+    workers.push_back(std::thread([&file_queue, doc_id]() {
       std::string chunk_path;
 
       file_queue_lock.lock();
 
-      while (!chunk_queue.empty()) {
-        chunk_path = chunk_queue.front();
-        chunk_queue.pop();
+      while (!file_queue.empty()) {
+        chunk_path = file_queue.front();
+        file_queue.pop();
 
         file_queue_lock.unlock();
 
@@ -141,11 +137,37 @@ void index_file(const std::string &file_path) {
 }
 
 /**
+ * Index a particular file.
+ *
+ * @param file_path
+ */
+void index_file(const std::string &file_path) {
+  std::string chunks_dir;
+
+  if (!split_file(file_path, chunks_dir)) {
+    std::cerr << "Failed to split file.\n";
+    std::exit(EXIT_FAILURE);
+  }
+
+  return;
+
+  std::cout << "Indexing " << file_path << " using up to " << max_threads << " threads...\n";
+
+  std::queue<std::string> chunk_queue;
+  populate_file_queue(chunks_dir, chunk_queue);
+
+  dispatch_file_workers(
+      chunk_queue,
+      Indexer::DocumentRepository::getDocID(file_path)
+  );
+}
+
+/**
  * Index all the files in a given directory.
  *
  * @param directory
  */
-void index_directory(const std::string & directory) {
+void index_directory(const std::string &directory) {
   std::queue<std::string> file_queue;
   populate_file_queue(directory, file_queue);
 

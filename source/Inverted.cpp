@@ -1,5 +1,6 @@
 #include <Inverted.h>
 #include <libs/json.hpp>
+#include <DocumentRepository.h>
 
 #include <iostream>
 #include <fstream>
@@ -22,11 +23,8 @@ bool Inverted::dump(const std::string &output_path) {
   // Create a json object
   json index_json;
 
-  for ( auto const & kv : Inverted::__index ) {
-    index_json[kv.first] = kv.second;
-  }
-  // Transform the __index object into a the json object
-  // Output the file.
+  index_json["documents"] = DocumentRepository::data();
+  index_json["index"] = Inverted::__index;
 
   std::ofstream output_file(output_path, std::ios::out);
 

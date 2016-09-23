@@ -1,9 +1,11 @@
 # Indexer
-Trying my hand at an document indexing system. The resulting inverted index will contain unique tokens mapped to structures containing information such as their documents of origin and line numbers. This might change.
+Trying my hand at an document indexing system. The resulting inverted index will be stored in json format and contain unique tokens mapped to structures containing information such as their documents of origin and line numbers. This might change.
 
-At the moment, it works by first splitting each file into a series of 64kb chunks and then dispatching a series of worker threads to index each chunk file.
-
-## (Eventual) Usage
+## Usage
 ```sh
-$ indexer /path/to/file/or/directory --output=/path/to/my/index
+$ indexer /path/to/input/file/or/directory /path/to/output
 ```
+## TODO
+* Performance Improvements
+    * Intelligently determine chunk size
+    * High performance file I/O with mmap/buffers when it makes sense

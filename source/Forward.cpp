@@ -13,8 +13,7 @@ void Forward::index(std::ifstream &file, docID id) {
   std::vector<std::string> tokens;
 
   while (std::getline(file, line)) {
-    // Convert string to lowercase.
-    std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+    Forward::Sanitize(line);
 
     // Tokenize.
     Forward::Tokenize(line, tokens);
@@ -27,17 +26,29 @@ void Forward::index(std::ifstream &file, docID id) {
   }
 }
 
-void Forward::clear()
-{
-    Forward::__index.clear();
+void Forward::clear() {
+  Forward::__index.clear();
 }
 
 const ForwardIndex_T &Forward::data() {
   return Forward::__index;
 }
 
-void Forward::Tokenize(std::string context, std::vector<std::string> &tokens) {
+void Forward::Tokenize(const std::string &context, std::vector<std::string> &tokens) {
   boost::split(tokens, context, boost::is_any_of(" "), boost::token_compress_on);
+}
+
+void Forward::Sanitize(std::string & line)
+{
+  // Remove all non-alphanumeric spaces and non-whitespace
+  line.erase(
+      std::remove_if(line.begin(), line.end(), [](char c) {
+        return !(std::isalpha(c) || std::isspace(c));
+      }),
+      line.end()
+  );
+
+  std::transform(line.begin(), line.end(), line.begin(), ::tolower);
 }
 
 }

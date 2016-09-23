@@ -17,15 +17,16 @@ typedef std::unordered_map<
 > ForwardIndex_T;
 
 class Forward {
-private:
-  static std::mutex index_lock;
-  static ForwardIndex_T __index;
-  static void Tokenize(std::string context, std::vector<std::string> &tokens);
-
 public:
   static void index(std::ifstream &input, docID id);
   static const ForwardIndex_T &data();
   static void clear();
+
+private:
+  static std::mutex index_lock;
+  static ForwardIndex_T __index;
+  static void Tokenize(const std::string & context, std::vector<std::string> &tokens);
+  static void Sanitize(std::string & line);
 };
 
 } // End Indexer

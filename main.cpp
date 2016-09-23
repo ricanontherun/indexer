@@ -7,6 +7,8 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <algorithm>
+#include <errno.h>
+#include <string.h>
 
 #include <DocumentRepository.h>
 #include <Forward.h>
@@ -58,7 +60,7 @@ void populate_file_queue(
  */
 bool split_file(const std::string &file_path, std::string &out_tmp) {
   // Construct and execute the split script
-  std::string command = "sh ../scripts/split_file.sh " + file_path;
+  std::string command = "sh ../scripts/split.sh 64k " + file_path;
   FILE *fp = popen(command.c_str(), "r");
 
   if (!fp) {
@@ -134,8 +136,6 @@ void index_file(const std::string &file_path) {
     std::exit(EXIT_FAILURE);
   }
 
-  return;
-
   std::cout << "Indexing " << file_path << " using up to " << max_threads << " threads...\n";
 
   std::queue<std::string> chunk_queue;
@@ -167,8 +167,9 @@ void index_directory(const std::string &directory) {
 }
 
 int main(int argc, char **argv) {
-  if (argc == 1) {
+  if (argc != 3) {
     // Display help.
+    std::cout << "Usage: indexer path/to/input path/to/output";
     return EXIT_FAILURE;
   }
 
@@ -177,7 +178,7 @@ int main(int argc, char **argv) {
   int stat_ret = stat(file_or_directory, &file_stat);
 
   if (stat_ret == -1) {
-    std::cerr << "Failed to open file '" << file_or_directory << "'\n";
+    std::cerr << strerror(errno) << " '" << file_or_directory << "'\n";
     return EXIT_FAILURE;
   }
 
@@ -195,7 +196,10 @@ int main(int argc, char **argv) {
   // Convert to inverted index
   Indexer::Inverted::index(Indexer::Forward::data());
 
-  Indexer::Inverted::dump("piss");
+  std::string output_path(argv[2]);
+
+  std::cout << "Writing to index file " << output_path << "\n";
+  Indexer::Inverted::dump(output_path);
 
   return EXIT_SUCCESS;
 }

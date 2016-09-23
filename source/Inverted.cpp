@@ -2,6 +2,7 @@
 #include <libs/json.hpp>
 
 #include <iostream>
+#include <fstream>
 
 namespace Indexer {
 
@@ -21,11 +22,22 @@ bool Inverted::dump(const std::string &output_path) {
   // Create a json object
   json index_json;
 
+  for ( auto const & kv : Inverted::__index ) {
+    index_json[kv.first] = kv.second;
+  }
   // Transform the __index object into a the json object
-  index_json["thing"] = {"asasdasd", "hello"};
   // Output the file.
 
-  std::cout << index_json;
+  std::ofstream output_file(output_path, std::ios::out);
+
+  if ( !output_file.good() ) {
+    std::cerr << "Failed to open output file '" << output_path<< "'\n";
+    return false;
+  }
+
+  // TODO: Improve efficiency...
+  output_file << index_json.dump(2);
+  output_file.close();
 
   return true;
 }

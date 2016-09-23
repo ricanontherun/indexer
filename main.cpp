@@ -47,19 +47,6 @@ void populate_file_queue(
   closedir(dir);
 }
 
-int determine_chunk_size(const std::string &file_path, std::string & chunk_size) {
-  struct stat fs;
-
-  int stat_ret = stat(file_path.c_str(), &fs);
-
-  if ( stat_ret == -1 ) {
-    std::cerr << "Failed to stat file '" << file_path << "'\n";
-    return -1;
-  }
-
-  off_t size = fs.st_size;
-}
-
 /**
  * Split a file into small chunks,
  * the tmp directory which contains them is returned via out_tmp
@@ -70,8 +57,6 @@ int determine_chunk_size(const std::string &file_path, std::string & chunk_size)
  * @return
  */
 bool split_file(const std::string &file_path, std::string &out_tmp) {
-  int chunk_size = determine_chunk_size(file_path);
-
   // Construct and execute the split script
   std::string command = "sh ../scripts/split_file.sh " + file_path;
   FILE *fp = popen(command.c_str(), "r");
@@ -209,6 +194,8 @@ int main(int argc, char **argv) {
 
   // Convert to inverted index
   Indexer::Inverted::index(Indexer::Forward::data());
+
+  Indexer::Inverted::dump("piss");
 
   return EXIT_SUCCESS;
 }

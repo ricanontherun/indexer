@@ -7,20 +7,19 @@
 #include <Forward.h>
 #include <DocumentRepository.h> // Might wanna pull the typedefs into a types.h ...
 
-namespace Indexer
-{
+namespace Indexer {
 
 typedef std::unordered_map<
     std::string, // Token
-    std::set<docID> // List of occurence documents
+    std::set<docID> // List of occurrence documents
 > InvertedIndex_T;
 
-class Inverted
-{
-    public:
-        static void index(const ForwardIndex_T & index);
-    private:
-        static InvertedIndex_T __index;
+class Inverted {
+public:
+  static void index(const ForwardIndex_T &index);
+  static bool dump(const std::string & output_path);
+private:
+  static InvertedIndex_T __index;
 
 };
 

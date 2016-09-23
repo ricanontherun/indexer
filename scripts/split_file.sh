@@ -3,7 +3,7 @@
 #!/bin/bash
 
 if [ ! $# -eq 2 ]; then
-    echo "Usage: sh split size path/to/file"
+    echo "Usage: sh split_file size path/to/file"
     exit 1
 fi
 

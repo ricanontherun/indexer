@@ -7,13 +7,11 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <algorithm>
-#include <errno.h>
 #include <string.h>
 
 #include <DocumentRepository.h>
 #include <Forward.h>
 #include <Inverted.h>
-#include <types.h>
 
 std::mutex file_queue_lock;
 
@@ -60,7 +58,7 @@ void populate_file_queue(
  */
 bool split_file(const std::string &file_path, std::string &out_tmp) {
   // Construct and execute the split script
-  std::string command = "sh ../scripts/split.sh 64k " + file_path;
+  std::string command = "split_file.sh 64k " + file_path;
   FILE *fp = popen(command.c_str(), "r");
 
   if (!fp) {
@@ -169,7 +167,7 @@ void index_directory(const std::string &directory) {
 int main(int argc, char **argv) {
   if (argc != 3) {
     // Display help.
-    std::cout << "Usage: indexer path/to/input path/to/output";
+    std::cout << "Usage: indexer path/to/input path/to/output\n";
     return EXIT_FAILURE;
   }
 

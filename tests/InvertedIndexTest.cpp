@@ -1,7 +1,7 @@
 #include "test_header.h"
 
-#include <Forward.h>
-#include <Inverted.h>
+#include <indexer/Forward.h>
+#include <indexer/Inverted.h>
 
 SCENARIO("An inverted index should be created")
 {

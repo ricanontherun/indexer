@@ -1,6 +1,6 @@
 #include "test_header.h"
 
-#include <DocumentRepository.h>
+#include <indexer/DocumentRepository.h>
 
 TEST_CASE("Document Repository Tests", "[repo]")
 {

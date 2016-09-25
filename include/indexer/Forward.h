@@ -7,7 +7,10 @@
 #include <fstream>
 #include <mutex>
 
-#include <DocumentRepository.h>
+#include <indexer/DocumentRepository.h>
+#include <file/file.h>
+
+using File = ricanontherun::File;
 
 namespace Indexer {
 
@@ -19,6 +22,8 @@ typedef std::unordered_map<
 class Forward {
 public:
   static void index(std::ifstream &input, docID id);
+  static void index(File &file, docID id);
+
   static const ForwardIndex_T &data();
   static void clear();
 

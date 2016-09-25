@@ -4,8 +4,8 @@
 #include <set>
 #include <unordered_set>
 #include <iterator>
-#include "Forward.h"
-#include <DocumentRepository.h>
+#include "indexer/Forward.h"
+#include <indexer/DocumentRepository.h>
 
 TEST_CASE("Forward Index tests", "[ForwardIndex], [unit]") {
   SECTION("The output from the indexer is predictable.") {

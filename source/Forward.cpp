@@ -1,18 +1,21 @@
-#include <Forward.h>
+#include <indexer/Forward.h>
 
 #include <iostream>
+
 #include <boost/algorithm/string.hpp>
+
 
 namespace Indexer {
 
 ForwardIndex_T Forward::__index;
 std::mutex Forward::index_lock;
 
-void Forward::index(std::ifstream &file, docID id) {
+void Forward::index(File &file, docID id) {
   std::string line;
   std::vector<std::string> tokens;
 
-  while (std::getline(file, line)) {
+  while (file.Read() == File::READ_STATUS::OK) {
+    line = file.Get();
     Forward::Sanitize(line);
 
     // Tokenize.

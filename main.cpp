@@ -7,15 +7,17 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <algorithm>
+#include <fcntl.h>
 #include <string.h>
 
-#include <DocumentRepository.h>
-#include <Forward.h>
-#include <Inverted.h>
+#include <indexer/DocumentRepository.h>
+#include <indexer/Forward.h>
+#include <indexer/Inverted.h>
 
 std::mutex file_queue_lock;
 
 unsigned int max_threads = std::thread::hardware_concurrency();
+std::size_t file_queue_pos = 0;
 
 /**
  * Populate a queue with relative paths to the REGULAR
@@ -26,7 +28,7 @@ unsigned int max_threads = std::thread::hardware_concurrency();
  */
 void populate_file_queue(
     const std::string &directory_path,
-    std::queue<std::string> &file_queue
+    std::vector<std::string> &file_queue
 ) {
   DIR *dir = opendir(directory_path.c_str());
   struct dirent *file;
@@ -41,7 +43,7 @@ void populate_file_queue(
       continue;
     }
 
-    file_queue.push(directory_path + "/" + std::string(file->d_name)); // Throw it on the queue.
+    file_queue.push_back(directory_path + "/" + std::string(file->d_name)); // Throw it on the queue.
   }
 
   closedir(dir);
@@ -82,33 +84,30 @@ bool split_file(const std::string &file_path, std::string &out_tmp) {
   return true;
 }
 
-void dispatch_file_workers(std::queue<std::string> &file_queue, Indexer::docID doc_id) {
-  // We definitely don't want to spawn more worker threads
-  // than there are files.
+void dispatch_file_workers(std::vector<std::string> &file_queue, Indexer::docID doc_id) {
   unsigned int threads = std::min(max_threads, static_cast<unsigned int>(file_queue.size()));
-
+  std::size_t queue_pos = 0;
+  std::size_t queue_size = file_queue.size();
   std::vector<std::thread> workers(threads);
 
   // Create a series of worker threads
   for (int i = 0; i < threads; i++) {
-    workers.push_back(std::thread([&file_queue, doc_id]() {
+    workers.push_back(std::thread([&file_queue, doc_id, &queue_pos, queue_size]() {
       std::string chunk_path;
 
       file_queue_lock.lock();
 
-      while (!file_queue.empty()) {
-        chunk_path = file_queue.front();
-        file_queue.pop();
+      while (queue_pos < queue_size) {
+        chunk_path = file_queue.at(queue_pos++);
 
         file_queue_lock.unlock();
 
-        std::ifstream file(chunk_path);
+        File f(chunk_path.c_str(), O_RDONLY, File::ACCESS_ADVICE::SEQUENTIAL);
 
-        if (file.good()) {
-          Indexer::Forward::index(file, doc_id);
-          file.close();
+        if (f.Ok()) {
+          Indexer::Forward::index(f, doc_id);
         } else {
-          std::cerr << "Failed to open file: " << chunk_path << "\n";
+          std::cerr << "Failed to open file '" << chunk_path << "\n";
         }
       }
     }));
@@ -136,7 +135,7 @@ void index_file(const std::string &file_path) {
 
   std::cout << "Indexing " << file_path << " using up to " << max_threads << " threads...\n";
 
-  std::queue<std::string> chunk_queue;
+  std::vector<std::string> chunk_queue;
   populate_file_queue(chunks_dir, chunk_queue);
 
   dispatch_file_workers(
@@ -151,14 +150,15 @@ void index_file(const std::string &file_path) {
  * @param directory
  */
 void index_directory(const std::string &directory) {
-  std::queue<std::string> file_queue;
+  std::vector<std::string> file_queue;
   populate_file_queue(directory, file_queue);
+
+  std::size_t file_queue_size = file_queue.size();
 
   std::string file;
 
-  while (!file_queue.empty()) {
-    file = file_queue.front();
-    file_queue.pop();
+  while (file_queue_pos < file_queue_size) {
+    file = file_queue.at(file_queue_pos++); // Get the next element and move the pointer forward.
 
     index_file(file);
   }

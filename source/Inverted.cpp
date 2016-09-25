@@ -1,9 +1,5 @@
-#include <Inverted.h>
-#include <libs/json.hpp>
-#include <DocumentRepository.h>
-
-#include <iostream>
-#include <fstream>
+#include <indexer/Inverted.h>
+#include <json.hpp>
 
 namespace Indexer {
 

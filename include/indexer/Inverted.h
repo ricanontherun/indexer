@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <set>
 
-#include <Forward.h>
-#include <DocumentRepository.h> // Might wanna pull the typedefs into a types.h ...
+#include <indexer/Forward.h>
+#include <indexer/DocumentRepository.h> // Might wanna pull the typedefs into a types.h ...
 
 namespace Indexer {
 

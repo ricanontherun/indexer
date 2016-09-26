@@ -16,8 +16,4 @@ $ indexer /path/to/input/file/or/directory /path/to/output
 ## TODO
 * Features
     * Recursively traverse input directory
-* Performance Improvements
-    * Actually output the damn file legend
-    * Intelligently determine chunk size
-    * High performance file I/O with mmap/buffers when it makes sense
     

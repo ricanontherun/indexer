@@ -17,8 +17,6 @@ void Forward::index(File &file, docID id) {
   while (file.Read() == File::READ_STATUS::OK) {
     line = file.Get();
     Forward::Sanitize(line);
-
-    // Tokenize.
     Forward::Tokenize(line, tokens);
 
     Forward::index_lock.lock();
@@ -38,6 +36,7 @@ const ForwardIndex_T &Forward::data() {
 }
 
 void Forward::Tokenize(const std::string &context, std::vector<std::string> &tokens) {
+  // TODO: Ideally this tokenization would just extract words..maybe boost is a bad idea for this.
   boost::split(tokens, context, boost::is_any_of(" "), boost::token_compress_on);
 }
 
@@ -51,6 +50,8 @@ void Forward::Sanitize(std::string & line)
       line.end()
   );
 
+  // TOOD: This is going to provide inaccurate results...they might be searching for
+  // mixed case tokens.
   std::transform(line.begin(), line.end(), line.begin(), ::tolower);
 }
 

@@ -71,7 +71,8 @@ void populate_file_queue(
  * @return
  */
 bool split_file(const std::string &file_path, std::string &out_tmp) {
-  // Construct and execute the split script
+  // TODO: There really should be a better way of doing this. This requires the split
+  // file command to be globally accessible.
   std::string command = "split_file.sh 64k " + file_path;
   FILE *fp = popen(command.c_str(), "r");
 
@@ -99,6 +100,7 @@ bool split_file(const std::string &file_path, std::string &out_tmp) {
 }
 
 void dispatch_file_workers(std::vector<std::string> &file_queue, Indexer::docID doc_id) {
+    // TODO: Check threading logic.
   unsigned int threads = std::min(max_threads, static_cast<unsigned int>(file_queue.size()));
   std::size_t queue_pos = 0;
   std::size_t queue_size = file_queue.size();
@@ -143,8 +145,7 @@ void index_file(const std::string &file_path) {
   std::string chunks_dir;
 
   if (!split_file(file_path, chunks_dir)) {
-    std::cerr << "Failed to split file.\n";
-    std::exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE);
   }
 
   std::cout << "Indexing " << file_path << " using up to " << max_threads << " threads...\n";
@@ -169,7 +170,7 @@ void index_directory(const std::string &directory) {
   populate_file_queue(directory, file_queue);
 
   for (const auto & file : file_queue) {
-        std::cout << file << "\n";
+    std::cout << file << "\n";
   }
 
   std::size_t file_queue_size = file_queue.size();
@@ -195,7 +196,7 @@ int main(int argc, char **argv) {
   int stat_ret = stat(file_or_directory, &file_stat);
 
   if (stat_ret == -1) {
-    std::cerr << strerror(errno) << " '" << file_or_directory << "'\n";
+      perror("stat");
     return EXIT_FAILURE;
   }
 
@@ -206,7 +207,7 @@ int main(int argc, char **argv) {
   } else if (S_ISREG(file_mode)) {
     index_file(std::string(file_or_directory));
   } else {
-    std::cerr << "Unsupported file type \n";
+    std::cerr << "Unsupported file type\n";
     return EXIT_FAILURE;
   }
 

@@ -30,7 +30,7 @@ bool Inverted::dump(const std::string &output_path) {
   }
 
   // TODO: Improve efficiency...
-  output_file << index_json.dump(2);
+  output_file << index_json.dump();
   output_file.close();
 
   return true;

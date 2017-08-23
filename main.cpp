@@ -9,10 +9,14 @@
 #include <algorithm>
 #include <fcntl.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <indexer/DocumentRepository.h>
 #include <indexer/Forward.h>
 #include <indexer/Inverted.h>
+
+#define IS_SELF(dir) (strcmp((dir->d_name), ".") == 0)
+#define IS_PARENT(dir) (strcmp((dir->d_name), "..") == 0)
 
 std::mutex file_queue_lock;
 
@@ -34,16 +38,24 @@ void populate_file_queue(
   struct dirent *file;
 
   if (dir == NULL) {
-    std::cerr << "Failed to open directory '" << directory_path << "' \n";
+    perror("populate_file_queue");
     return;
   }
 
   while ((file = readdir(dir)) != NULL) {
-    if (file->d_type != DT_REG) { // Ignore non-regular files.
-      continue;
-    }
+      // Check for '.' and '..'
+      if ( IS_SELF(file) || IS_PARENT(file) ) {
+        continue;
+      }
 
-    file_queue.push_back(directory_path + "/" + std::string(file->d_name)); // Throw it on the queue.
+      std::string path(directory_path);
+
+      if (file->d_type == DT_REG) {
+        file_queue.push_back(path.append("/").append(file->d_name));
+        continue;
+      }
+
+    populate_file_queue(path.append(file->d_name), file_queue);
   }
 
   closedir(dir);
@@ -63,7 +75,8 @@ bool split_file(const std::string &file_path, std::string &out_tmp) {
   std::string command = "split_file.sh 64k " + file_path;
   FILE *fp = popen(command.c_str(), "r");
 
-  if (!fp) {
+  if (fp == NULL) {
+      perror("popen");
     return false;
   }
 
@@ -75,6 +88,7 @@ bool split_file(const std::string &file_path, std::string &out_tmp) {
   int ret = pclose(fp);
 
   if (ret == -1) {
+      perror("pclose");
     return false;
   }
 
@@ -151,7 +165,12 @@ void index_file(const std::string &file_path) {
  */
 void index_directory(const std::string &directory) {
   std::vector<std::string> file_queue;
+
   populate_file_queue(directory, file_queue);
+
+  for (const auto & file : file_queue) {
+        std::cout << file << "\n";
+  }
 
   std::size_t file_queue_size = file_queue.size();
 
